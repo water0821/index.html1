@@ -1,15 +1,5 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>網紅/KOL 稅務試算工具</title>
-    <style>
-        :root { --primary: #6f42c1; --accent: #e83e8c; --bg: #f8f9fa; }
-        body { font-family: "PingFang TC", sans-serif; background: var(--bg); padding: 20px; }
-        .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--primary); margin-bottom: 5px; }
-        .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 25px; }
+
+
         
         .input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #fefefe; padding: 10px; border-bottom: 1px solid #eee; }
         .input-row label { flex: 1; font-weight: bold; }
