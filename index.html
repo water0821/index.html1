@@ -22,4 +22,118 @@
 
         .result-area { margin-top: 30px; padding: 20px; border-radius: 15px; background: linear-gradient(135deg, #6f42c1, #a951ed); color: white; }
         .result-item { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; }
-        .diff-banner { font-size: 24px; font-weight: bold; text-align: center; margin-top: 15px; background: rgba(255,255
+        .diff-banner { font-size: 24px; font-weight: bold; text-align: center; margin-top: 15px; background: rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Influencer 稅務計算機</h2>
+    <div class="subtitle">針對 114 年度網紅多元收入設計</div>
+
+    <div class="input-section">
+        <div class="input-row">
+            <label>業配/通告費 (執行業務所得 9A)</label>
+            <input type="number" id="income9A" value="500000" oninput="calculate()">
+        </div>
+        <div class="input-row">
+            <label>團購分潤/周邊 (營利所得 54)</label>
+            <input type="number" id="income54" value="300000" oninput="calculate()">
+        </div>
+        <div class="input-row">
+            <label>經紀公司底薪 (薪資所得 50)</label>
+            <input type="number" id="income50" value="200000" oninput="calculate()">
+        </div>
+        <div class="input-row">
+            <label>其他收入 (打賞/贊助)</label>
+            <input type="number" id="incomeOther" value="0" oninput="calculate()">
+        </div>
+    </div>
+
+    <div class="tax-config">
+        <p style="font-weight: bold; font-size: 14px; margin-bottom: 10px;">📉 未來稅率模擬 (自定義 %)</p>
+        <table>
+            <thead>
+                <tr><th>級距</th><th>目前</th><th>未來設定</th></tr>
+            </thead>
+            <tbody id="rateTable"></tbody>
+        </table>
+    </div>
+
+    <div class="result-area">
+        <div class="result-item"><span>總收入總計：</span><span id="totalIncome">0</span></div>
+        <div class="result-item"><span>所得淨額 (扣除免稅額)：</span><span id="netIncome">0</span></div>
+        <div class="result-item"><span>目前應繳稅額：</span><span id="curTax">0</span></div>
+        <div class="result-item"><span>未來預估稅額：</span><span id="futTax">0</span></div>
+        <div class="diff-banner" id="diffVal">差異：$0</div>
+    </div>
+</div>
+
+<script>
+const taxBrackets = [
+    { limit: 610000, rate: 0.05 },
+    { limit: 1380000, rate: 0.12 },
+    { limit: 2770000, rate: 0.20 },
+    { limit: 5190000, rate: 0.30 },
+    { limit: Infinity, rate: 0.40 }
+];
+
+// 初始化稅率表
+const rateTable = document.getElementById('rateTable');
+taxBrackets.forEach((b, i) => {
+    rateTable.innerHTML += `
+        <tr>
+            <td>${b.limit === Infinity ? '最高級' : (b.limit/10000)+'萬以下'}</td>
+            <td>${b.rate*100}%</td>
+            <td><input type="number" class="f-rate" value="${b.rate*100}" oninput="calculate()">%</td>
+        </tr>
+    `;
+});
+
+function calculate() {
+    // 取得輸入值
+    const i9A = parseFloat(document.getElementById('income9A').value) || 0;
+    const i54 = parseFloat(document.getElementById('income54').value) || 0;
+    const i50 = parseFloat(document.getElementById('income50').value) || 0;
+    const iOther = parseFloat(document.getElementById('incomeOther').value) || 0;
+
+    const total = i9A + i54 + i50 + iOther;
+    
+    // 基本扣除額 (114年單身 46.4萬)
+    const net = Math.max(0, total - 464000);
+    
+    // 目前稅率算法
+    const curTax = calcTaxLogic(net, taxBrackets.map(b => b.rate));
+    
+    // 未來稅率算法
+    const futureRates = Array.from(document.querySelectorAll('.f-rate')).map(el => parseFloat(el.value)/100 || 0);
+    const futTax = calcTaxLogic(net, futureRates);
+    
+    // 更新顯示
+    document.getElementById('totalIncome').innerText = '$' + total.toLocaleString();
+    document.getElementById('netIncome').innerText = '$' + net.toLocaleString();
+    document.getElementById('curTax').innerText = '$' + curTax.toLocaleString();
+    document.getElementById('futTax').innerText = '$' + futTax.toLocaleString();
+    
+    const diff = futTax - curTax;
+    const diffVal = document.getElementById('diffVal');
+    diffVal.innerText = (diff >= 0 ? '需多繳：$' : '可省下：$') + Math.abs(diff).toLocaleString();
+}
+
+function calcTaxLogic(net, rates) {
+    let tax = 0;
+    let prevLimit = 0;
+    for (let i = 0; i < taxBrackets.length; i++) {
+        if (net > prevLimit) {
+            let taxable = Math.min(net, taxBrackets[i].limit) - prevLimit;
+            tax += taxable * rates[i];
+        }
+        prevLimit = taxBrackets[i].limit;
+    }
+    return Math.round(tax);
+}
+
+calculate(); // 初始執行
+</script>
+</body>
+</html>
